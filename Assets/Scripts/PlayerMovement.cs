@@ -16,6 +16,8 @@ public class PlayerMovement : MonoBehaviour
     private bool physicsMovement = true;
     [SerializeField]
     bool raw;
+
+    bool facingRight = true;
     void Start()
     {
         body = this.gameObject.GetComponent<Rigidbody2D>();
@@ -41,6 +43,9 @@ public class PlayerMovement : MonoBehaviour
 
     void PhysicsMovement()
     {
+        Debug.DrawRay(this.transform.position + raycastOriginOffset,
+            -Vector2.up * minFloorDistance, Color.red);
+
         bool middleRay = Physics2D.Raycast(this.transform.position + raycastOriginOffset,
             -Vector2.up * minFloorDistance);
         bool leftRay = Physics2D.Raycast(this.transform.position + raycastOriginOffset - Vector3.right * distanceBetweenRays,
@@ -48,22 +53,38 @@ public class PlayerMovement : MonoBehaviour
         bool rightRay = Physics2D.Raycast(this.transform.position + raycastOriginOffset + Vector3.right * distanceBetweenRays,
             -Vector2.up * minFloorDistance);
 
+        float xMov = Input.GetAxis("Horizontal");
+        //if (raw)
+        //{
+          //  xMov = Input.GetAxis("Raw");
+        //}
+        //else
+        //{
+          //  xMov = Input.GetAxis("Horizontal");
+        //}
+        
+        body.velocity = new Vector2(xMov * speed, body.velocity.y);
+
         if (Input.GetButtonDown("Jump")
             && Physics2D.Raycast(this.transform.position + raycastOriginOffset, -Vector2.up, minFloorDistance))
         {
-            body.AddForce(Vector2.up * jumpForce);
+            body.AddForce(Vector2.up * jumpForce * 10); 
         }
+        
 
-        float xMov;
-        if (raw)
+            if (xMov > 0 && facingRight == false)
         {
-            xMov = Input.GetAxis("Raw");
+            facingRight = !facingRight;
+            Vector2 localscale = gameObject.transform.localScale;
+            localscale.x *= -1;
+            transform.localScale = localscale;
         }
-        else
+        else if (xMov < 0 && facingRight == true)
         {
-            xMov = Input.GetAxis("Horizontal");
+            facingRight = !facingRight;
+            Vector2 localscale = gameObject.transform.localScale;
+            localscale.x *= -1;
+            transform.localScale = localscale;
         }
-
-        body.velocity = new Vector2(xMov * speed, body.velocity.y);
     }
 }
