@@ -1,9 +1,15 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
+    public Animator animator;
+
+    public AudioSource audioPlayer;
+    public AudioClip sound;
+
     public Rigidbody2D body;
     public float jumpForce;
     public float speed;
@@ -21,6 +27,7 @@ public class PlayerMovement : MonoBehaviour
     void Start()
     {
         body = this.gameObject.GetComponent<Rigidbody2D>();
+        audioPlayer.clip = sound;
     }
 
     // Update is called once per frame
@@ -29,7 +36,17 @@ public class PlayerMovement : MonoBehaviour
         if (physicsMovement)
         {
             PhysicsMovement();
+            if (!Physics2D.Raycast(this.transform.position + raycastOriginOffset, -Vector2.up, minFloorDistance) && Death.dead == false)
+            {
+                animator.SetBool("isJumping", true);
+            }
+
+            if (Physics2D.Raycast(this.transform.position + raycastOriginOffset, -Vector2.up, minFloorDistance) || Death.dead == true)
+            {
+                animator.SetBool("isJumping", false);
+            }
         }
+
         else
         {
             KinemeticMovement();
@@ -43,6 +60,8 @@ public class PlayerMovement : MonoBehaviour
 
     void PhysicsMovement()
     {
+        
+
         Debug.DrawRay(this.transform.position + raycastOriginOffset,
             -Vector2.up * minFloorDistance, Color.red);
 
@@ -65,10 +84,13 @@ public class PlayerMovement : MonoBehaviour
         
         body.velocity = new Vector2(xMov * speed, body.velocity.y);
 
-        if (Input.GetButtonDown("Jump")
-            && Physics2D.Raycast(this.transform.position + raycastOriginOffset, -Vector2.up, minFloorDistance))
+        if (Input.GetButtonDown("Jump"))
         {
-            body.AddForce(Vector2.up * jumpForce * 10); 
+            if (Physics2D.Raycast(this.transform.position + raycastOriginOffset, -Vector2.up, minFloorDistance))
+            {
+                audioPlayer.Play();
+                body.AddForce(Vector2.up * jumpForce * 10);
+            }
         }
         
 
@@ -86,5 +108,7 @@ public class PlayerMovement : MonoBehaviour
             localscale.x *= -1;
             transform.localScale = localscale;
         }
+
+        animator.SetFloat("Speed", Mathf.Abs(xMov * speed));
     }
 }

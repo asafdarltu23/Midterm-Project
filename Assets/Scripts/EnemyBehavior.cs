@@ -1,6 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor.Tilemaps;
+//using UnityEditor.Tilemaps;
 using UnityEngine;
 
 public class EnemyBehavior : MonoBehaviour
@@ -11,8 +11,11 @@ public class EnemyBehavior : MonoBehaviour
 
     public float minObsticleDistance;
     public Collider2D col;
+    public Collider2D NoFall;
 
- 
+    public static EnemyBehavior Instance;
+
+
     // Start is called before the first frame update
     void Start()
     {
@@ -28,9 +31,16 @@ public class EnemyBehavior : MonoBehaviour
         RaycastHit2D floorBelow = Physics2D.Raycast(this.transform.position + new Vector3(5,0,-0.5f), Vector2.down);
         rb.velocity = new Vector2(xMovDirect * speed, rb.velocity.y);
 
-        if (hit.distance < minObsticleDistance || !floorBelow)
+        if (hit.distance < minObsticleDistance &&
+            hit.collider.tag != "Player")
         {
             Flip();
+        }
+
+        if (gameObject.transform.position.y <= -50)
+        {
+            Score.Instance.AddScore(200);
+            Destroy(this.gameObject);
         }
     }
 
@@ -51,9 +61,14 @@ public class EnemyBehavior : MonoBehaviour
             rb.AddForce(Vector2.up * 50);
         }
 
+        if (other.gameObject.name == "NoFall")
+        {
+            Flip();
+        }
+
         if (other.CompareTag("Player"))
         {
-            Death.Instance.Kill();
+            Death.dead = true;
         }
     }
 }
